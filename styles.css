@@ -84,7 +84,11 @@ button:active {
     width: 100%;
     height: calc(100vh - 60px);
     position: relative;
-    cursor: pointer;
+    cursor: url('./images/cursor_glass.png') 25 25, crosshair;
+}
+
+#game-screen:not(.active) #game-area {
+    cursor: default;
 }
 
 .menu-button {

@@ -7,6 +7,7 @@ class Game {
         this.currentSoundLevel = null;
         this.gameStartTime = null;
         this.hasFoundTarget = false;
+        this.isMouseInGame = false;
         this.setupEventListeners();
     }
 
@@ -19,6 +20,21 @@ class Game {
         const gameArea = document.getElementById('game-area');
         gameArea.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         gameArea.addEventListener('click', (e) => this.handleClick(e));
+        
+        // Mouse enter/leave events
+        gameArea.addEventListener('mouseenter', () => {
+            this.isMouseInGame = true;
+            if (this.currentSoundLevel && !this.hasFoundTarget) {
+                this.playSound(`${this.currentMode}_${this.currentSoundLevel}`);
+            }
+        });
+        
+        gameArea.addEventListener('mouseleave', () => {
+            this.isMouseInGame = false;
+            if (this.currentSound && !this.hasFoundTarget) {
+                this.currentSound.pause();
+            }
+        });
     }
 
     loadSounds(mode) {
@@ -28,7 +44,7 @@ class Game {
             const audio = new Audio(`sounds/${mode}/${level}.mp3`);
             if (level !== 'victory') {
                 audio.addEventListener('ended', () => {
-                    if (this.currentSoundLevel === level && !this.hasFoundTarget) {
+                    if (this.currentSoundLevel === level && !this.hasFoundTarget && this.isMouseInGame) {
                         audio.currentTime = 0;
                         audio.play();
                     }
@@ -109,7 +125,7 @@ class Game {
     }
 
     playSound(soundKey) {
-        if (!this.sounds[soundKey]) return;
+        if (!this.sounds[soundKey] || (!this.isMouseInGame && soundKey.indexOf('victory') === -1)) return;
 
         // Arrêter le son actuel s'il existe
         if (this.currentSound) {
