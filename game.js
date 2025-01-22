@@ -166,6 +166,79 @@ class Game {
         return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
 
+    createFirework(x, y) {
+        const firework = document.createElement('div');
+        firework.className = 'firework';
+        firework.style.left = x + 'px';
+        firework.style.top = y + 'px';
+        
+        // Créer les particules du feu d'artifice
+        const particleCount = 30;
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            const angle = (i / particleCount) * Math.PI * 2;
+            const velocity = 100 + Math.random() * 50;
+            const tx = Math.cos(angle) * velocity;
+            const ty = Math.sin(angle) * velocity;
+            const color = this.getRandomColor();
+            
+            particle.style.cssText = `
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 4px;
+                height: 4px;
+                border-radius: 50%;
+                background: ${color};
+                box-shadow: 0 0 6px ${color};
+                transform: translate(0, 0);
+                --tx: ${tx}px;
+                --ty: ${ty}px;
+                animation: fireworkParticles 1s ease-out forwards;
+            `;
+            
+            firework.appendChild(particle);
+        }
+        
+        document.body.appendChild(firework);
+        setTimeout(() => firework.remove(), 1000);
+    }
+
+    launchFirework() {
+        const startX = Math.random() * window.innerWidth;
+        const endX = Math.random() * window.innerWidth;
+        const endY = Math.random() * (window.innerHeight * 0.5); // Limite supérieure à la moitié de l'écran
+        
+        // Créer la trainée
+        const trail = document.createElement('div');
+        trail.className = 'firework-trail';
+        trail.style.cssText = `
+            left: ${startX}px;
+            bottom: 0;
+            --target-y: ${-window.innerHeight + endY}px;
+        `;
+        
+        document.body.appendChild(trail);
+        
+        // Créer l'explosion après que la trainée atteigne sa cible
+        setTimeout(() => {
+            this.createFirework(endX, endY);
+            trail.remove();
+        }, 400);
+    }
+
+    startFireworks() {
+        // Lancer des feux d'artifice toutes les 500-1500ms
+        const launchFirework = () => {
+            if (document.getElementById('victory-screen')) {
+                this.launchFirework();
+                setTimeout(launchFirework, Math.random() * 1000 + 500);
+            }
+        };
+        
+        launchFirework();
+    }
+
     characterFound() {
         this.hasFoundTarget = true;
         const timeTaken = Date.now() - this.gameStartTime;
@@ -248,6 +321,9 @@ class Game {
         // Ajouter le personnage et l'écran de victoire
         document.body.appendChild(victoryScreen);
         document.body.appendChild(character);
+
+        // Démarrer les feux d'artifice après un court délai
+        setTimeout(() => this.startFireworks(), 1000);
 
         // Après 1 seconde, commencer la transition vers le centre
         setTimeout(() => {
